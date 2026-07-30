@@ -8,6 +8,7 @@ import {
 } from "../lib/authStorage";
 import WelcomeWidget from "../components/home/WelcomeWidget";
 import QuickLinksWidget from "../components/home/QuickLinksWidget";
+import TrustedDeviceBanner from "../components/security/TrustedDeviceBanner";
 
 /** Home dashboard — Stage 5 import graph via WelcomeWidget + QuickLinksWidget. */
 export default function HomePage() {
@@ -283,6 +284,7 @@ export default function HomePage() {
 
         <WelcomeWidget name={user?.displayName || user?.email} />
         <QuickLinksWidget />
+        <TrustedDeviceBanner />
 
         <button
           type="button"
