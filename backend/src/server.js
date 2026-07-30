@@ -22,4 +22,5 @@ app.listen(PORT, () => {
   console.log(`API listening on http://localhost:${PORT}`);
   console.log(`POST /api/v1/auth/register`);
   console.log(`POST /api/v1/auth/login`);
+  console.log(`POST /api/v1/auth/logout`);
 });

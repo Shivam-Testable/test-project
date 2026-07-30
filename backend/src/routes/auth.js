@@ -3,8 +3,10 @@ const {
   createUser,
   verifyCredentials,
   createSession,
+  destroySession,
   toPublicUser,
 } = require("../store");
+const { getBearerToken, requireAuth } = require("../middleware/auth");
 
 const router = express.Router();
 
@@ -83,6 +85,16 @@ router.post("/login", (req, res) => {
     message: "Logged in successfully",
     token,
     user: toPublicUser(user),
+  });
+});
+
+/**
+ * POST /api/v1/auth/logout — TESR-4
+ */
+router.post("/logout", requireAuth, (req, res) => {
+  destroySession(req.authToken || getBearerToken(req));
+  return res.status(200).json({
+    message: "Logged out successfully",
   });
 });
 
