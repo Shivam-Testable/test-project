@@ -1,6 +1,6 @@
 const express = require("express");
 const { requireAuth } = require("../middleware/auth");
-const { toPublicUser } = require("../store");
+const { toPublicUser, listActivity } = require("../store");
 
 const router = express.Router();
 
@@ -54,6 +54,15 @@ router.get("/status", requireAuth, (req, res) => {
     status: "active",
     email: user.email,
     displayName: user.displayName,
+  });
+});
+
+/**
+ * GET /api/v1/home/activity — TESR-17
+ */
+router.get("/activity", requireAuth, (req, res) => {
+  return res.status(200).json({
+    events: listActivity(req.user.id, 20),
   });
 });
 

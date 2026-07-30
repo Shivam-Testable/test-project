@@ -5,6 +5,7 @@ const crypto = require("crypto");
 const usersByEmail = new Map();
 const usersById = new Map();
 const sessionsByToken = new Map();
+const activityByUserId = new Map();
 
 function normalizeEmail(email) {
   return String(email || "").trim().toLowerCase();
@@ -48,7 +49,24 @@ function createUser({ email, password }) {
   };
   usersByEmail.set(normalized, user);
   usersById.set(user.id, user);
+  recordActivity(user.id, "register", "Account created");
   return toPublicUser(user);
+}
+
+function recordActivity(userId, type, message) {
+  const list = activityByUserId.get(userId) || [];
+  list.unshift({
+    id: `act_${crypto.randomBytes(6).toString("hex")}`,
+    type,
+    message,
+    at: new Date().toISOString(),
+  });
+  activityByUserId.set(userId, list.slice(0, 50));
+}
+
+function listActivity(userId, limit = 20) {
+  const list = activityByUserId.get(userId) || [];
+  return list.slice(0, limit);
 }
 
 function verifyCredentials(email, password) {
@@ -120,6 +138,7 @@ function updateDisplayName(userId, displayName) {
     throw err;
   }
   user.displayName = displayName;
+  recordActivity(userId, "display_name", `Display name updated to ${displayName}`);
   return toPublicUser(user);
 }
 
@@ -179,6 +198,7 @@ function changePassword(userId, currentPassword, newPassword) {
     throw err;
   }
   user.password = newPassword;
+  recordActivity(userId, "password", "Password changed");
   return toPublicUser(user);
 }
 
@@ -197,5 +217,7 @@ module.exports = {
   changePassword,
   getPreferences,
   updatePreferences,
+  recordActivity,
+  listActivity,
   toPublicUser,
 };

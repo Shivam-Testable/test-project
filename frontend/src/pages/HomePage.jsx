@@ -27,6 +27,9 @@ export default function HomePage() {
   const [tipStatus, setTipStatus] = useState("loading");
   const [tip, setTip] = useState("");
   const [tipError, setTipError] = useState("");
+  const [activityStatus, setActivityStatus] = useState("loading");
+  const [activity, setActivity] = useState([]);
+  const [activityError, setActivityError] = useState("");
 
   const loadHome = useCallback(
     async (cancelledRef) => {
@@ -135,16 +138,52 @@ export default function HomePage() {
     [navigate]
   );
 
+  const loadActivity = useCallback(
+    async (cancelledRef) => {
+      setActivityStatus("loading");
+      setActivityError("");
+      try {
+        const response = await fetch("/api/v1/home/activity", {
+          headers: {
+            ...authHeaders(),
+          },
+        });
+        const data = await response.json().catch(() => ({}));
+        if (cancelledRef?.current) return false;
+        if (!response.ok) {
+          if (response.status === 401) {
+            clearSession();
+            navigate("/login");
+            return false;
+          }
+          setActivityStatus("error");
+          setActivityError(data.message || "Failed to load activity");
+          return false;
+        }
+        setActivity(data.events || []);
+        setActivityStatus("success");
+        return true;
+      } catch {
+        if (cancelledRef?.current) return false;
+        setActivityStatus("error");
+        setActivityError("Could not reach the activity API.");
+        return false;
+      }
+    },
+    [navigate]
+  );
+
   useEffect(() => {
     if (!token) return undefined;
     const cancelledRef = { current: false };
     loadHome(cancelledRef);
     loadProfile(cancelledRef);
     loadTip(cancelledRef);
+    loadActivity(cancelledRef);
     return () => {
       cancelledRef.current = true;
     };
-  }, [token, loadHome, loadProfile, loadTip]);
+  }, [token, loadHome, loadProfile, loadTip, loadActivity]);
 
   if (!token) {
     return <Navigate to="/login" replace />;
@@ -157,7 +196,8 @@ export default function HomePage() {
     const homeOk = await loadHome(cancelledRef);
     const profileOk = await loadProfile(cancelledRef);
     const tipOk = await loadTip(cancelledRef);
-    if (homeOk && profileOk && tipOk) {
+    const activityOk = await loadActivity(cancelledRef);
+    if (homeOk && profileOk && tipOk && activityOk) {
       setRefreshStatus("success");
       setRefreshMessage("Dashboard refreshed");
     } else {
@@ -200,6 +240,7 @@ export default function HomePage() {
       setSaveStatus("success");
       setSaveMessage(data.message || "Display name updated");
       await loadTip({ current: false });
+      await loadActivity({ current: false });
     } catch {
       setSaveStatus("error");
       setSaveMessage("Could not reach the update display name API.");
@@ -236,7 +277,7 @@ export default function HomePage() {
     <main className="page">
       <section className="card" aria-labelledby="home-heading">
         <h1 id="home-heading">Home</h1>
-        <p className="subtitle">Post-login dashboard — TESR-10 / TESR-11</p>
+        <p className="subtitle">Post-login dashboard — includes TESR-17 activity</p>
 
         <button
           type="button"
@@ -337,6 +378,36 @@ export default function HomePage() {
             {error}
           </p>
         ) : null}
+
+        <section aria-labelledby="activity-heading" style={{ marginTop: "1.5rem" }}>
+          <h2 id="activity-heading">Recent activity</h2>
+          {activityStatus === "loading" ? (
+            <p className="banner success" role="status">
+              Loading activity…
+            </p>
+          ) : null}
+          {activityStatus === "success" ? (
+            <div role="status">
+              {activity.length === 0 ? (
+                <p className="subtitle">No recent events yet.</p>
+              ) : (
+                <ul style={{ paddingLeft: "1.1rem", margin: 0 }}>
+                  {activity.map((event) => (
+                    <li key={event.id} style={{ marginBottom: "0.5rem" }}>
+                      <strong>{event.message}</strong>
+                      <div className="subtitle">{new Date(event.at).toLocaleString()}</div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          ) : null}
+          {activityStatus === "error" ? (
+            <p className="banner error" role="alert">
+              {activityError}
+            </p>
+          ) : null}
+        </section>
 
         <section aria-labelledby="profile-heading" style={{ marginTop: "1.5rem" }}>
           <h2 id="profile-heading">Profile</h2>

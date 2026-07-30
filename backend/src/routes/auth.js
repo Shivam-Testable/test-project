@@ -8,6 +8,7 @@ const {
   listSessionsForUser,
   destroySessionById,
   changePassword,
+  recordActivity,
   toPublicUser,
 } = require("../store");
 const { getBearerToken, requireAuth } = require("../middleware/auth");
@@ -85,6 +86,7 @@ router.post("/login", (req, res) => {
   }
 
   const token = createSession(user, { label: "Web session" });
+  recordActivity(user.id, "login", "Signed in");
   return res.status(200).json({
     message: "Logged in successfully",
     token,
@@ -96,6 +98,7 @@ router.post("/login", (req, res) => {
  * POST /api/v1/auth/logout — TESR-4
  */
 router.post("/logout", requireAuth, (req, res) => {
+  recordActivity(req.user.id, "logout", "Signed out");
   destroySession(req.authToken || getBearerToken(req));
   return res.status(200).json({
     message: "Logged out successfully",
