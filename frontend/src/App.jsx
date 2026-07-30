@@ -7,6 +7,7 @@ import SessionsPage from "./pages/SessionsPage";
 import SettingsPage from "./pages/SettingsPage";
 import HelpPage from "./pages/help/HelpPage";
 import SecurityPage from "./pages/account/security/SecurityPage";
+import PrivacyPage from "./pages/account/privacy/PrivacyPage";
 
 export default function App() {
   return (
@@ -22,6 +23,7 @@ export default function App() {
       <Route path="/settings" element={<SettingsPage />} />
       <Route path="/help" element={<HelpPage />} />
       <Route path="/account/security" element={<SecurityPage />} />
+      <Route path="/account/privacy" element={<PrivacyPage />} />
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   );
