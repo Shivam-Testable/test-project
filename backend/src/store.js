@@ -73,6 +73,17 @@ function destroySession(token) {
   return sessionsByToken.delete(token);
 }
 
+function updateDisplayName(userId, displayName) {
+  const user = findById(userId);
+  if (!user) {
+    const err = new Error("User not found");
+    err.code = "NOT_FOUND";
+    throw err;
+  }
+  user.displayName = displayName;
+  return toPublicUser(user);
+}
+
 module.exports = {
   findByEmail,
   findById,
@@ -81,5 +92,6 @@ module.exports = {
   createSession,
   getUserByToken,
   destroySession,
+  updateDisplayName,
   toPublicUser,
 };
