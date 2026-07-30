@@ -1,0 +1,119 @@
+:root {
+  color-scheme: light;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  line-height: 1.45;
+  --bg: #f3f5f7;
+  --card: #ffffff;
+  --text: #15202b;
+  --muted: #5b6b79;
+  --border: #d7dee5;
+  --accent: #0f6e56;
+  --accent-hover: #0b5844;
+  --error: #9b1c1c;
+  --error-bg: #fde8e8;
+  --success: #03543f;
+  --success-bg: #def7ec;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, #dceee8 0%, transparent 42%),
+    radial-gradient(circle at bottom right, #e7eef7 0%, transparent 40%),
+    var(--bg);
+  color: var(--text);
+}
+
+.page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+}
+
+.card {
+  width: min(100%, 420px);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.75rem;
+  box-shadow: 0 10px 30px rgba(21, 32, 43, 0.06);
+}
+
+h1 {
+  margin: 0 0 0.35rem;
+  font-size: 1.5rem;
+}
+
+.subtitle {
+  margin: 0 0 1.25rem;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.form {
+  display: grid;
+  gap: 0.45rem;
+}
+
+label {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+input {
+  width: 100%;
+  margin-bottom: 0.65rem;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font: inherit;
+}
+
+input:focus {
+  outline: 2px solid rgba(15, 110, 86, 0.35);
+  border-color: var(--accent);
+}
+
+button {
+  margin-top: 0.35rem;
+  padding: 0.75rem 1rem;
+  border: 0;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+button:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.banner {
+  margin: 1rem 0 0;
+  padding: 0.75rem 0.85rem;
+  border-radius: 8px;
+  font-size: 0.95rem;
+}
+
+.banner.success {
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+.banner.error {
+  background: var(--error-bg);
+  color: var(--error);
+}
