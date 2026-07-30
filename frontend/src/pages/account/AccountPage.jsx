@@ -1,9 +1,10 @@
-import { Link, Navigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import { getStoredUser, getToken } from "../../lib/authStorage";
+import AccountShell from "../../components/account/AccountShell";
 
 /**
- * Stage 4 route convention:
- *   /account  →  frontend/src/pages/account/AccountPage.jsx
+ * Stage 4 route + Stage 5 imports:
+ *   /account → AccountPage → AccountShell → AccountNav + AccountSummary
  */
 export default function AccountPage() {
   const token = getToken();
@@ -15,35 +16,7 @@ export default function AccountPage() {
 
   return (
     <main className="page">
-      <section className="card" aria-labelledby="account-heading">
-        <h1 id="account-heading">Account</h1>
-        <p className="subtitle">Account overview — TESR-22 (Stage 4 route /account)</p>
-        <p role="status">
-          Signed in as {user?.displayName || user?.email || "user"}. Choose a section below.
-        </p>
-        <ul style={{ paddingLeft: "1.1rem" }}>
-          <li>
-            <Link to="/account/security">Security</Link>
-          </li>
-          <li>
-            <Link to="/account/privacy">Privacy</Link>
-          </li>
-          <li>
-            <Link to="/settings">Notification settings</Link>
-          </li>
-          <li>
-            <Link to="/sessions">Active sessions</Link>
-          </li>
-          <li>
-            <Link to="/change-password">Change password</Link>
-          </li>
-        </ul>
-        <p className="subtitle" style={{ marginTop: "1rem" }}>
-          <Link to="/home">Back to home</Link>
-          {" · "}
-          <Link to="/help">Help</Link>
-        </p>
-      </section>
+      <AccountShell displayName={user?.displayName} email={user?.email} />
     </main>
   );
 }
