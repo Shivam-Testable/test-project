@@ -1,5 +1,10 @@
 const express = require("express");
-const { createUser } = require("../store");
+const {
+  createUser,
+  verifyCredentials,
+  createSession,
+  toPublicUser,
+} = require("../store");
 
 const router = express.Router();
 
@@ -48,6 +53,37 @@ router.post("/register", (req, res) => {
       message: "Registration failed",
     });
   }
+});
+
+/**
+ * POST /api/v1/auth/login — TESR-3
+ * Body: { email, password }
+ */
+router.post("/login", (req, res) => {
+  const email = req.body?.email;
+  const password = req.body?.password;
+
+  if (!isValidEmail(email) || typeof password !== "string" || !password) {
+    return res.status(400).json({
+      error: "INVALID_CREDENTIALS",
+      message: "Email and password are required",
+    });
+  }
+
+  const user = verifyCredentials(email, password);
+  if (!user) {
+    return res.status(401).json({
+      error: "INVALID_CREDENTIALS",
+      message: "Invalid email or password",
+    });
+  }
+
+  const token = createSession(user);
+  return res.status(200).json({
+    message: "Logged in successfully",
+    token,
+    user: toPublicUser(user),
+  });
 });
 
 module.exports = router;

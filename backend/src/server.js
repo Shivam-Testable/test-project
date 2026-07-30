@@ -19,6 +19,7 @@ app.use((req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Register API listening on http://localhost:${PORT}`);
-  console.log(`POST http://localhost:${PORT}/api/v1/auth/register`);
+  console.log(`API listening on http://localhost:${PORT}`);
+  console.log(`POST /api/v1/auth/register`);
+  console.log(`POST /api/v1/auth/login`);
 });

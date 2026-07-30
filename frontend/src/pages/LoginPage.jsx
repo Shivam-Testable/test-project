@@ -1,9 +1,11 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { setSession } from "../lib/authStorage";
 
-const API_URL = "/api/v1/auth/register";
+const API_URL = "/api/v1/auth/login";
 
-export default function RegisterPage() {
+export default function LoginPage() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState("idle");
@@ -24,29 +26,30 @@ export default function RegisterPage() {
 
       if (!response.ok) {
         setStatus("error");
-        setMessage(data.message || "Registration failed");
+        setMessage(data.message || "Login failed");
         return;
       }
 
+      setSession(data.token, data.user);
       setStatus("success");
-      setMessage(data.message || "User registered successfully");
-      setPassword("");
+      setMessage(data.message || "Logged in successfully");
+      navigate("/home");
     } catch {
       setStatus("error");
-      setMessage("Could not reach the register API. Is the backend running?");
+      setMessage("Could not reach the login API. Is the backend running?");
     }
   }
 
   return (
     <main className="page">
-      <section className="card" aria-labelledby="register-heading">
-        <h1 id="register-heading">Create account</h1>
-        <p className="subtitle">Minimal register form for TESR-2 (Stage 1)</p>
+      <section className="card" aria-labelledby="login-heading">
+        <h1 id="login-heading">Log in</h1>
+        <p className="subtitle">Combined login for TESR-3 (Stage 1)</p>
 
         <form className="form" onSubmit={onSubmit} noValidate>
-          <label htmlFor="email">Email</label>
+          <label htmlFor="login-email">Email</label>
           <input
-            id="email"
+            id="login-email"
             name="email"
             type="email"
             autoComplete="email"
@@ -56,26 +59,25 @@ export default function RegisterPage() {
             required
           />
 
-          <label htmlFor="password">Password</label>
+          <label htmlFor="login-password">Password</label>
           <input
-            id="password"
+            id="login-password"
             name="password"
             type="password"
-            autoComplete="new-password"
+            autoComplete="current-password"
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            minLength={8}
             required
           />
 
           <button type="submit" disabled={status === "loading"}>
-            {status === "loading" ? "Registering…" : "Register"}
+            {status === "loading" ? "Logging in…" : "Log in"}
           </button>
         </form>
 
         <p className="subtitle" style={{ marginTop: "1rem" }}>
-          Already have an account? <Link to="/login">Log in</Link>
+          No account? <Link to="/register">Create one</Link>
         </p>
 
         {status === "success" ? (
