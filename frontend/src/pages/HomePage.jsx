@@ -443,6 +443,10 @@ export default function HomePage() {
           {" · "}
           <Link to="/settings">Notification settings</Link>
           {" · "}
+          <Link to="/help">Help</Link>
+          {" · "}
+          <Link to="/account">Account</Link>
+          {" · "}
           <Link to="/login">Back to login</Link>
         </p>
 

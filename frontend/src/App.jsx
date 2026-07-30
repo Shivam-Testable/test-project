@@ -5,6 +5,7 @@ import RegisterPage from "./pages/RegisterPage";
 import ChangePasswordPage from "./pages/ChangePasswordPage";
 import SessionsPage from "./pages/SessionsPage";
 import SettingsPage from "./pages/SettingsPage";
+import HelpPage from "./pages/help/HelpPage";
 
 export default function App() {
   return (
@@ -18,6 +19,7 @@ export default function App() {
       <Route path="/sessions" element={<SessionsPage />} />
       <Route path="/change-password" element={<ChangePasswordPage />} />
       <Route path="/settings" element={<SettingsPage />} />
+      <Route path="/help" element={<HelpPage />} />
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   );
