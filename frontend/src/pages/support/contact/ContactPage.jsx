@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import TextField from "../../../components/form/TextField";
+import TextArea from "../../../components/form/TextArea";
 
 /**
- * Stage 4 route convention:
- *   /support/contact  →  frontend/src/pages/support/contact/ContactPage.jsx
+ * Stage 4 route + Stage 5 imports:
+ *   ContactPage → TextField + TextArea
  */
 export default function ContactPage() {
   const [name, setName] = useState("");
@@ -27,31 +29,27 @@ export default function ContactPage() {
     <main className="page">
       <section className="card" aria-labelledby="contact-heading">
         <h1 id="contact-heading">Contact support</h1>
-        <p className="subtitle">Support contact — TESR-21 (Stage 4 route /support/contact)</p>
+        <p className="subtitle">Support contact — TESR-24 shared form imports (Stage 5)</p>
 
         <form className="form" onSubmit={onSubmit} noValidate>
-          <label htmlFor="contact-name">Name</label>
-          <input
+          <TextField
             id="contact-name"
+            label="Name"
             name="name"
-            type="text"
             placeholder="Your name"
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
           />
-
-          <label htmlFor="contact-message">Message</label>
-          <input
+          <TextArea
             id="contact-message"
+            label="Message"
             name="message"
-            type="text"
             placeholder="How can we help?"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             required
           />
-
           <button type="submit">Send message</button>
         </form>
 
