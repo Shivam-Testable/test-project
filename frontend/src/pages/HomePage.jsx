@@ -1,8 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
-import { authHeaders, clearSession, getToken } from "../lib/authStorage";
+import {
+  authHeaders,
+  clearSession,
+  getToken,
+  setSession,
+} from "../lib/authStorage";
 
-/** Home dashboard UI — TESR-6 (uses TESR-5 API). Logout from TESR-4. */
+/** Home dashboard + edit display name (TESR-8 Stage 2). */
 export default function HomePage() {
   const navigate = useNavigate();
   const token = getToken();
@@ -11,6 +16,9 @@ export default function HomePage() {
   const [user, setUser] = useState(null);
   const [error, setError] = useState("");
   const [logoutStatus, setLogoutStatus] = useState("idle");
+  const [displayName, setDisplayName] = useState("");
+  const [saveStatus, setSaveStatus] = useState("idle");
+  const [saveMessage, setSaveMessage] = useState("");
 
   useEffect(() => {
     if (!token) return undefined;
@@ -39,6 +47,7 @@ export default function HomePage() {
         }
         setWelcome(data.welcome || "Welcome");
         setUser(data.user || null);
+        setDisplayName(data.user?.displayName || "");
         setLoadStatus("success");
       } catch {
         if (cancelled) return;
@@ -55,6 +64,36 @@ export default function HomePage() {
 
   if (!token) {
     return <Navigate to="/login" replace />;
+  }
+
+  async function onSaveDisplayName(event) {
+    event.preventDefault();
+    setSaveStatus("loading");
+    setSaveMessage("");
+    try {
+      const response = await fetch("/api/v1/users/me", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          ...authHeaders(),
+        },
+        body: JSON.stringify({ displayName }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        setSaveStatus("error");
+        setSaveMessage(data.message || "Failed to update display name");
+        return;
+      }
+      setUser(data.user);
+      setWelcome(`Welcome back, ${data.user.displayName || data.user.email}`);
+      setSession(token, data.user);
+      setSaveStatus("success");
+      setSaveMessage(data.message || "Display name updated");
+    } catch {
+      setSaveStatus("error");
+      setSaveMessage("Could not reach the update display name API.");
+    }
   }
 
   async function onLogout() {
@@ -78,7 +117,7 @@ export default function HomePage() {
     <main className="page">
       <section className="card" aria-labelledby="home-heading">
         <h1 id="home-heading">Home</h1>
-        <p className="subtitle">Post-login dashboard for TESR-6 (Stage 1)</p>
+        <p className="subtitle">Post-login dashboard — TESR-8 edit display name</p>
 
         {loadStatus === "loading" ? (
           <p className="banner success" role="status">
@@ -97,6 +136,36 @@ export default function HomePage() {
             <p>
               <strong>Display name:</strong> {user?.displayName || "—"}
             </p>
+
+            <form className="form" onSubmit={onSaveDisplayName} noValidate style={{ marginTop: "1.25rem" }}>
+              <label htmlFor="display-name">Display name</label>
+              <input
+                id="display-name"
+                name="displayName"
+                type="text"
+                autoComplete="nickname"
+                placeholder="Display name"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                minLength={2}
+                maxLength={80}
+                required
+              />
+              <button type="submit" disabled={saveStatus === "loading"}>
+                {saveStatus === "loading" ? "Saving…" : "Save display name"}
+              </button>
+            </form>
+
+            {saveStatus === "success" ? (
+              <p className="banner success" role="status">
+                {saveMessage}
+              </p>
+            ) : null}
+            {saveStatus === "error" ? (
+              <p className="banner error" role="alert">
+                {saveMessage}
+              </p>
+            ) : null}
           </div>
         ) : null}
 
