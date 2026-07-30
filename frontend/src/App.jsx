@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
+import ChangePasswordPage from "./pages/ChangePasswordPage";
 import SessionsPage from "./pages/SessionsPage";
 
 export default function App() {
@@ -14,6 +15,7 @@ export default function App() {
       <Route path="/auth/register" element={<RegisterPage />} />
       <Route path="/home" element={<HomePage />} />
       <Route path="/sessions" element={<SessionsPage />} />
+      <Route path="/change-password" element={<ChangePasswordPage />} />
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   );

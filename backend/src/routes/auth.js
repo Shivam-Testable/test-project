@@ -7,6 +7,7 @@ const {
   getSessionByToken,
   listSessionsForUser,
   destroySessionById,
+  changePassword,
   toPublicUser,
 } = require("../store");
 const { getBearerToken, requireAuth } = require("../middleware/auth");
@@ -129,6 +130,46 @@ router.delete("/sessions/:id", requireAuth, (req, res) => {
     message: "Session revoked",
     id: sessionId,
   });
+});
+
+/**
+ * POST /api/v1/auth/change-password — TESR-14
+ * Body: { currentPassword, newPassword }
+ */
+router.post("/change-password", requireAuth, (req, res) => {
+  const currentPassword = req.body?.currentPassword;
+  const newPassword = req.body?.newPassword;
+
+  try {
+    changePassword(req.user.id, currentPassword, newPassword);
+    return res.status(200).json({
+      message: "Password changed successfully",
+    });
+  } catch (err) {
+    if (err.code === "INVALID_CURRENT_PASSWORD") {
+      return res.status(401).json({
+        error: err.code,
+        message: err.message,
+      });
+    }
+    if (err.code === "INVALID_NEW_PASSWORD") {
+      return res.status(400).json({
+        error: err.code,
+        message: err.message,
+      });
+    }
+    if (err.code === "NOT_FOUND") {
+      return res.status(404).json({
+        error: err.code,
+        message: err.message,
+      });
+    }
+    console.error("change password failed", err);
+    return res.status(500).json({
+      error: "INTERNAL_ERROR",
+      message: "Failed to change password",
+    });
+  }
 });
 
 module.exports = router;

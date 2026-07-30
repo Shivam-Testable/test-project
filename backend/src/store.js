@@ -119,6 +119,27 @@ function updateDisplayName(userId, displayName) {
   return toPublicUser(user);
 }
 
+function changePassword(userId, currentPassword, newPassword) {
+  const user = findById(userId);
+  if (!user) {
+    const err = new Error("User not found");
+    err.code = "NOT_FOUND";
+    throw err;
+  }
+  if (user.password !== currentPassword) {
+    const err = new Error("Current password is incorrect");
+    err.code = "INVALID_CURRENT_PASSWORD";
+    throw err;
+  }
+  if (typeof newPassword !== "string" || newPassword.length < 8) {
+    const err = new Error("New password must be at least 8 characters");
+    err.code = "INVALID_NEW_PASSWORD";
+    throw err;
+  }
+  user.password = newPassword;
+  return toPublicUser(user);
+}
+
 module.exports = {
   findByEmail,
   findById,
@@ -131,5 +152,6 @@ module.exports = {
   listSessionsForUser,
   destroySessionById,
   updateDisplayName,
+  changePassword,
   toPublicUser,
 };
