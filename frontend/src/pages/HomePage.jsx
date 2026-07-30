@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import {
   authHeaders,
@@ -7,7 +7,7 @@ import {
   setSession,
 } from "../lib/authStorage";
 
-/** Home dashboard, edit display name (TESR-8), profile card (TESR-9 Stage 2). */
+/** Home dashboard + TESR-10 refresh (Stage 2). */
 export default function HomePage() {
   const navigate = useNavigate();
   const token = getToken();
@@ -22,12 +22,11 @@ export default function HomePage() {
   const [profileStatus, setProfileStatus] = useState("loading");
   const [profile, setProfile] = useState(null);
   const [profileError, setProfileError] = useState("");
+  const [refreshStatus, setRefreshStatus] = useState("idle");
+  const [refreshMessage, setRefreshMessage] = useState("");
 
-  useEffect(() => {
-    if (!token) return undefined;
-    let cancelled = false;
-
-    async function loadHome() {
+  const loadHome = useCallback(
+    async (cancelledRef) => {
       setLoadStatus("loading");
       setError("");
       try {
@@ -37,29 +36,34 @@ export default function HomePage() {
           },
         });
         const data = await response.json().catch(() => ({}));
-        if (cancelled) return;
+        if (cancelledRef?.current) return false;
         if (!response.ok) {
           if (response.status === 401) {
             clearSession();
             navigate("/login");
-            return;
+            return false;
           }
           setLoadStatus("error");
           setError(data.message || "Failed to load home dashboard");
-          return;
+          return false;
         }
         setWelcome(data.welcome || "Welcome");
         setUser(data.user || null);
         setDisplayName(data.user?.displayName || "");
         setLoadStatus("success");
+        return true;
       } catch {
-        if (cancelled) return;
+        if (cancelledRef?.current) return false;
         setLoadStatus("error");
         setError("Could not reach the home API. Is the backend running?");
+        return false;
       }
-    }
+    },
+    [navigate]
+  );
 
-    async function loadProfile() {
+  const loadProfile = useCallback(
+    async (cancelledRef) => {
       setProfileStatus("loading");
       setProfileError("");
       try {
@@ -69,35 +73,57 @@ export default function HomePage() {
           },
         });
         const data = await response.json().catch(() => ({}));
-        if (cancelled) return;
+        if (cancelledRef?.current) return false;
         if (!response.ok) {
           if (response.status === 401) {
             clearSession();
             navigate("/login");
-            return;
+            return false;
           }
           setProfileStatus("error");
           setProfileError(data.message || "Failed to load profile");
-          return;
+          return false;
         }
         setProfile(data);
         setProfileStatus("success");
+        return true;
       } catch {
-        if (cancelled) return;
+        if (cancelledRef?.current) return false;
         setProfileStatus("error");
         setProfileError("Could not reach the profile API.");
+        return false;
       }
-    }
+    },
+    [navigate]
+  );
 
-    loadHome();
-    loadProfile();
+  useEffect(() => {
+    if (!token) return undefined;
+    const cancelledRef = { current: false };
+    loadHome(cancelledRef);
+    loadProfile(cancelledRef);
     return () => {
-      cancelled = true;
+      cancelledRef.current = true;
     };
-  }, [token, navigate]);
+  }, [token, loadHome, loadProfile]);
 
   if (!token) {
     return <Navigate to="/login" replace />;
+  }
+
+  async function onRefreshDashboard() {
+    setRefreshStatus("loading");
+    setRefreshMessage("");
+    const cancelledRef = { current: false };
+    const homeOk = await loadHome(cancelledRef);
+    const profileOk = await loadProfile(cancelledRef);
+    if (homeOk && profileOk) {
+      setRefreshStatus("success");
+      setRefreshMessage("Dashboard refreshed");
+    } else {
+      setRefreshStatus("error");
+      setRefreshMessage("Refresh failed. Check the errors above.");
+    }
   }
 
   async function onSaveDisplayName(event) {
@@ -169,7 +195,32 @@ export default function HomePage() {
     <main className="page">
       <section className="card" aria-labelledby="home-heading">
         <h1 id="home-heading">Home</h1>
-        <p className="subtitle">Post-login dashboard — TESR-8 / TESR-9</p>
+        <p className="subtitle">Post-login dashboard — TESR-10 refresh</p>
+
+        <button
+          type="button"
+          onClick={onRefreshDashboard}
+          disabled={refreshStatus === "loading"}
+          style={{ marginBottom: "1rem" }}
+        >
+          {refreshStatus === "loading" ? "Refreshing…" : "Refresh dashboard"}
+        </button>
+
+        {refreshStatus === "loading" ? (
+          <p className="banner success" role="status">
+            Refreshing dashboard…
+          </p>
+        ) : null}
+        {refreshStatus === "success" ? (
+          <p className="banner success" role="status">
+            {refreshMessage}
+          </p>
+        ) : null}
+        {refreshStatus === "error" ? (
+          <p className="banner error" role="alert">
+            {refreshMessage}
+          </p>
+        ) : null}
 
         {loadStatus === "loading" ? (
           <p className="banner success" role="status">
