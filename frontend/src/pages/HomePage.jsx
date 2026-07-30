@@ -6,8 +6,10 @@ import {
   getToken,
   setSession,
 } from "../lib/authStorage";
+import WelcomeWidget from "../components/home/WelcomeWidget";
+import QuickLinksWidget from "../components/home/QuickLinksWidget";
 
-/** Home dashboard + TESR-10 refresh + TESR-11 tip (Stage 2). */
+/** Home dashboard — Stage 5 import graph via WelcomeWidget + QuickLinksWidget. */
 export default function HomePage() {
   const navigate = useNavigate();
   const token = getToken();
@@ -277,7 +279,10 @@ export default function HomePage() {
     <main className="page">
       <section className="card" aria-labelledby="home-heading">
         <h1 id="home-heading">Home</h1>
-        <p className="subtitle">Post-login dashboard — includes TESR-17 activity</p>
+        <p className="subtitle">Post-login dashboard — Stage 5 widgets via local imports</p>
+
+        <WelcomeWidget name={user?.displayName || user?.email} />
+        <QuickLinksWidget />
 
         <button
           type="button"
