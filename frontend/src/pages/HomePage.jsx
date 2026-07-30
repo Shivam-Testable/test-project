@@ -366,6 +366,8 @@ export default function HomePage() {
         </section>
 
         <p className="subtitle" style={{ marginTop: "1rem" }}>
+          <Link to="/sessions">Active sessions</Link>
+          {" · "}
           <Link to="/login">Back to login</Link>
         </p>
 

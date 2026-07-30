@@ -4,6 +4,9 @@ const {
   verifyCredentials,
   createSession,
   destroySession,
+  getSessionByToken,
+  listSessionsForUser,
+  destroySessionById,
   toPublicUser,
 } = require("../store");
 const { getBearerToken, requireAuth } = require("../middleware/auth");
@@ -80,7 +83,7 @@ router.post("/login", (req, res) => {
     });
   }
 
-  const token = createSession(user);
+  const token = createSession(user, { label: "Web session" });
   return res.status(200).json({
     message: "Logged in successfully",
     token,
@@ -95,6 +98,36 @@ router.post("/logout", requireAuth, (req, res) => {
   destroySession(req.authToken || getBearerToken(req));
   return res.status(200).json({
     message: "Logged out successfully",
+  });
+});
+
+/**
+ * GET /api/v1/auth/sessions — TESR-13
+ */
+router.get("/sessions", requireAuth, (req, res) => {
+  const current = getSessionByToken(req.authToken || getBearerToken(req));
+  const sessions = listSessionsForUser(req.user.id).map(({ token, ...rest }) => ({
+    ...rest,
+    current: Boolean(current && current.id === rest.id),
+  }));
+  return res.status(200).json({ sessions });
+});
+
+/**
+ * DELETE /api/v1/auth/sessions/:id — TESR-13
+ */
+router.delete("/sessions/:id", requireAuth, (req, res) => {
+  const sessionId = req.params.id;
+  const removed = destroySessionById(req.user.id, sessionId);
+  if (!removed) {
+    return res.status(404).json({
+      error: "SESSION_NOT_FOUND",
+      message: "Session not found",
+    });
+  }
+  return res.status(200).json({
+    message: "Session revoked",
+    id: sessionId,
   });
 });
 

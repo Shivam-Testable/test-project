@@ -1,4 +1,4 @@
-/** In-memory user + session store for the Stage 1 demo (not for production). */
+/** In-memory user + session store for the Stage demo (not for production). */
 
 const crypto = require("crypto");
 
@@ -55,9 +55,15 @@ function verifyCredentials(email, password) {
   return user;
 }
 
-function createSession(user) {
+function createSession(user, meta = {}) {
   const token = crypto.randomBytes(24).toString("hex");
-  sessionsByToken.set(token, { userId: user.id, createdAt: new Date().toISOString() });
+  const id = `sess_${crypto.randomBytes(8).toString("hex")}`;
+  sessionsByToken.set(token, {
+    id,
+    userId: user.id,
+    createdAt: new Date().toISOString(),
+    label: meta.label || "Web session",
+  });
   return token;
 }
 
@@ -68,9 +74,38 @@ function getUserByToken(token) {
   return findById(session.userId);
 }
 
+function getSessionByToken(token) {
+  if (!token) return null;
+  return sessionsByToken.get(token) || null;
+}
+
 function destroySession(token) {
   if (!token) return false;
   return sessionsByToken.delete(token);
+}
+
+function listSessionsForUser(userId) {
+  const sessions = [];
+  for (const [token, session] of sessionsByToken.entries()) {
+    if (session.userId !== userId) continue;
+    sessions.push({
+      id: session.id,
+      createdAt: session.createdAt,
+      label: session.label || "Web session",
+      token,
+    });
+  }
+  return sessions.sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
+}
+
+function destroySessionById(userId, sessionId) {
+  for (const [token, session] of sessionsByToken.entries()) {
+    if (session.userId === userId && session.id === sessionId) {
+      sessionsByToken.delete(token);
+      return true;
+    }
+  }
+  return false;
 }
 
 function updateDisplayName(userId, displayName) {
@@ -91,7 +126,10 @@ module.exports = {
   verifyCredentials,
   createSession,
   getUserByToken,
+  getSessionByToken,
   destroySession,
+  listSessionsForUser,
+  destroySessionById,
   updateDisplayName,
   toPublicUser,
 };
