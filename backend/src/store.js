@@ -41,6 +41,10 @@ function createUser({ email, password }) {
     password,
     displayName: normalized.split("@")[0],
     createdAt: new Date().toISOString(),
+    preferences: {
+      emailAlerts: true,
+      productTips: true,
+    },
   };
   usersByEmail.set(normalized, user);
   usersById.set(user.id, user);
@@ -119,6 +123,44 @@ function updateDisplayName(userId, displayName) {
   return toPublicUser(user);
 }
 
+function defaultPreferences() {
+  return { emailAlerts: true, productTips: true };
+}
+
+function getPreferences(userId) {
+  const user = findById(userId);
+  if (!user) {
+    const err = new Error("User not found");
+    err.code = "NOT_FOUND";
+    throw err;
+  }
+  if (!user.preferences) {
+    user.preferences = defaultPreferences();
+  }
+  return { ...user.preferences };
+}
+
+function updatePreferences(userId, prefs) {
+  const user = findById(userId);
+  if (!user) {
+    const err = new Error("User not found");
+    err.code = "NOT_FOUND";
+    throw err;
+  }
+  const next = {
+    ...defaultPreferences(),
+    ...(user.preferences || {}),
+  };
+  if (typeof prefs.emailAlerts === "boolean") {
+    next.emailAlerts = prefs.emailAlerts;
+  }
+  if (typeof prefs.productTips === "boolean") {
+    next.productTips = prefs.productTips;
+  }
+  user.preferences = next;
+  return { ...next };
+}
+
 function changePassword(userId, currentPassword, newPassword) {
   const user = findById(userId);
   if (!user) {
@@ -153,5 +195,7 @@ module.exports = {
   destroySessionById,
   updateDisplayName,
   changePassword,
+  getPreferences,
+  updatePreferences,
   toPublicUser,
 };
