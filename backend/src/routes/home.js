@@ -44,4 +44,17 @@ router.get("/tip", requireAuth, (req, res) => {
   });
 });
 
+/**
+ * GET /api/v1/home/status — TESR-12 (backend only)
+ * Requires Authorization: Bearer <token>
+ */
+router.get("/status", requireAuth, (req, res) => {
+  const user = toPublicUser(req.user);
+  return res.status(200).json({
+    status: "active",
+    email: user.email,
+    displayName: user.displayName,
+  });
+});
+
 module.exports = router;

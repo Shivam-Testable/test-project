@@ -30,5 +30,6 @@ app.listen(PORT, () => {
   console.log(`GET  /api/v1/home`);
   console.log(`GET  /api/v1/home/profile`);
   console.log(`GET  /api/v1/home/tip`);
+  console.log(`GET  /api/v1/home/status`);
   console.log(`PATCH /api/v1/users/me`);
 });
