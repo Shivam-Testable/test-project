@@ -10,6 +10,7 @@ import SecurityPage from "./pages/account/security/SecurityPage";
 import PrivacyPage from "./pages/account/privacy/PrivacyPage";
 import ContactPage from "./pages/support/contact/ContactPage";
 import AccountPage from "./pages/account/AccountPage";
+import ExportArchivePage from "./pages/account/export/ExportArchivePage";
 
 export default function App() {
   return (
@@ -27,6 +28,7 @@ export default function App() {
       <Route path="/account" element={<AccountPage />} />
       <Route path="/account/security" element={<SecurityPage />} />
       <Route path="/account/privacy" element={<PrivacyPage />} />
+      <Route path="/account/export" element={<ExportArchivePage />} />
       <Route path="/support/contact" element={<ContactPage />} />
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
