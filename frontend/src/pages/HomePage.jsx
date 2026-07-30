@@ -370,6 +370,8 @@ export default function HomePage() {
           {" · "}
           <Link to="/change-password">Change password</Link>
           {" · "}
+          <Link to="/settings">Notification settings</Link>
+          {" · "}
           <Link to="/login">Back to login</Link>
         </p>
 
