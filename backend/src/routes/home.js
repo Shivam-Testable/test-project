@@ -31,4 +31,17 @@ router.get("/profile", requireAuth, (req, res) => {
   });
 });
 
+/**
+ * GET /api/v1/home/tip — TESR-11 (combined with tip banner UI)
+ * Requires Authorization: Bearer <token>
+ */
+router.get("/tip", requireAuth, (req, res) => {
+  const user = toPublicUser(req.user);
+  const name = user.displayName || user.email;
+  return res.status(200).json({
+    tip: `Hi ${name}, keep your display name up to date so teammates recognize you.`,
+    title: "Tip",
+  });
+});
+
 module.exports = router;

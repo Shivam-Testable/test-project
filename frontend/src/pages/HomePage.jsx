@@ -7,7 +7,7 @@ import {
   setSession,
 } from "../lib/authStorage";
 
-/** Home dashboard + TESR-10 refresh (Stage 2). */
+/** Home dashboard + TESR-10 refresh + TESR-11 tip (Stage 2). */
 export default function HomePage() {
   const navigate = useNavigate();
   const token = getToken();
@@ -24,6 +24,9 @@ export default function HomePage() {
   const [profileError, setProfileError] = useState("");
   const [refreshStatus, setRefreshStatus] = useState("idle");
   const [refreshMessage, setRefreshMessage] = useState("");
+  const [tipStatus, setTipStatus] = useState("loading");
+  const [tip, setTip] = useState("");
+  const [tipError, setTipError] = useState("");
 
   const loadHome = useCallback(
     async (cancelledRef) => {
@@ -97,15 +100,51 @@ export default function HomePage() {
     [navigate]
   );
 
+  const loadTip = useCallback(
+    async (cancelledRef) => {
+      setTipStatus("loading");
+      setTipError("");
+      try {
+        const response = await fetch("/api/v1/home/tip", {
+          headers: {
+            ...authHeaders(),
+          },
+        });
+        const data = await response.json().catch(() => ({}));
+        if (cancelledRef?.current) return false;
+        if (!response.ok) {
+          if (response.status === 401) {
+            clearSession();
+            navigate("/login");
+            return false;
+          }
+          setTipStatus("error");
+          setTipError(data.message || "Failed to load tip");
+          return false;
+        }
+        setTip(data.tip || "");
+        setTipStatus("success");
+        return true;
+      } catch {
+        if (cancelledRef?.current) return false;
+        setTipStatus("error");
+        setTipError("Could not reach the tip API.");
+        return false;
+      }
+    },
+    [navigate]
+  );
+
   useEffect(() => {
     if (!token) return undefined;
     const cancelledRef = { current: false };
     loadHome(cancelledRef);
     loadProfile(cancelledRef);
+    loadTip(cancelledRef);
     return () => {
       cancelledRef.current = true;
     };
-  }, [token, loadHome, loadProfile]);
+  }, [token, loadHome, loadProfile, loadTip]);
 
   if (!token) {
     return <Navigate to="/login" replace />;
@@ -117,7 +156,8 @@ export default function HomePage() {
     const cancelledRef = { current: false };
     const homeOk = await loadHome(cancelledRef);
     const profileOk = await loadProfile(cancelledRef);
-    if (homeOk && profileOk) {
+    const tipOk = await loadTip(cancelledRef);
+    if (homeOk && profileOk && tipOk) {
       setRefreshStatus("success");
       setRefreshMessage("Dashboard refreshed");
     } else {
@@ -159,6 +199,7 @@ export default function HomePage() {
       );
       setSaveStatus("success");
       setSaveMessage(data.message || "Display name updated");
+      await loadTip({ current: false });
     } catch {
       setSaveStatus("error");
       setSaveMessage("Could not reach the update display name API.");
@@ -195,7 +236,7 @@ export default function HomePage() {
     <main className="page">
       <section className="card" aria-labelledby="home-heading">
         <h1 id="home-heading">Home</h1>
-        <p className="subtitle">Post-login dashboard — TESR-10 refresh</p>
+        <p className="subtitle">Post-login dashboard — TESR-10 / TESR-11</p>
 
         <button
           type="button"
@@ -221,6 +262,25 @@ export default function HomePage() {
             {refreshMessage}
           </p>
         ) : null}
+
+        <section aria-labelledby="tip-heading" style={{ marginBottom: "1rem" }}>
+          <h2 id="tip-heading">Tip</h2>
+          {tipStatus === "loading" ? (
+            <p className="banner success" role="status">
+              Loading tip…
+            </p>
+          ) : null}
+          {tipStatus === "success" ? (
+            <p className="banner success" role="status">
+              {tip}
+            </p>
+          ) : null}
+          {tipStatus === "error" ? (
+            <p className="banner error" role="alert">
+              {tipError}
+            </p>
+          ) : null}
+        </section>
 
         {loadStatus === "loading" ? (
           <p className="banner success" role="status">
