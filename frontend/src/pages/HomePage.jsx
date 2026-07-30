@@ -7,7 +7,7 @@ import {
   setSession,
 } from "../lib/authStorage";
 
-/** Home dashboard + edit display name (TESR-8 Stage 2). */
+/** Home dashboard, edit display name (TESR-8), profile card (TESR-9 Stage 2). */
 export default function HomePage() {
   const navigate = useNavigate();
   const token = getToken();
@@ -19,6 +19,9 @@ export default function HomePage() {
   const [displayName, setDisplayName] = useState("");
   const [saveStatus, setSaveStatus] = useState("idle");
   const [saveMessage, setSaveMessage] = useState("");
+  const [profileStatus, setProfileStatus] = useState("loading");
+  const [profile, setProfile] = useState(null);
+  const [profileError, setProfileError] = useState("");
 
   useEffect(() => {
     if (!token) return undefined;
@@ -56,7 +59,38 @@ export default function HomePage() {
       }
     }
 
+    async function loadProfile() {
+      setProfileStatus("loading");
+      setProfileError("");
+      try {
+        const response = await fetch("/api/v1/home/profile", {
+          headers: {
+            ...authHeaders(),
+          },
+        });
+        const data = await response.json().catch(() => ({}));
+        if (cancelled) return;
+        if (!response.ok) {
+          if (response.status === 401) {
+            clearSession();
+            navigate("/login");
+            return;
+          }
+          setProfileStatus("error");
+          setProfileError(data.message || "Failed to load profile");
+          return;
+        }
+        setProfile(data);
+        setProfileStatus("success");
+      } catch {
+        if (cancelled) return;
+        setProfileStatus("error");
+        setProfileError("Could not reach the profile API.");
+      }
+    }
+
     loadHome();
+    loadProfile();
     return () => {
       cancelled = true;
     };
@@ -88,6 +122,15 @@ export default function HomePage() {
       setUser(data.user);
       setWelcome(`Welcome back, ${data.user.displayName || data.user.email}`);
       setSession(token, data.user);
+      setProfile((prev) =>
+        prev
+          ? {
+              ...prev,
+              displayName: data.user.displayName,
+              email: data.user.email,
+            }
+          : prev
+      );
       setSaveStatus("success");
       setSaveMessage(data.message || "Display name updated");
     } catch {
@@ -113,11 +156,20 @@ export default function HomePage() {
     navigate("/login");
   }
 
+  function formatMemberSince(value) {
+    if (!value) return "—";
+    try {
+      return new Date(value).toLocaleDateString();
+    } catch {
+      return value;
+    }
+  }
+
   return (
     <main className="page">
       <section className="card" aria-labelledby="home-heading">
         <h1 id="home-heading">Home</h1>
-        <p className="subtitle">Post-login dashboard — TESR-8 edit display name</p>
+        <p className="subtitle">Post-login dashboard — TESR-8 / TESR-9</p>
 
         {loadStatus === "loading" ? (
           <p className="banner success" role="status">
@@ -174,6 +226,33 @@ export default function HomePage() {
             {error}
           </p>
         ) : null}
+
+        <section aria-labelledby="profile-heading" style={{ marginTop: "1.5rem" }}>
+          <h2 id="profile-heading">Profile</h2>
+          {profileStatus === "loading" ? (
+            <p className="banner success" role="status">
+              Loading profile…
+            </p>
+          ) : null}
+          {profileStatus === "success" ? (
+            <div className="banner success" role="status">
+              <p>
+                <strong>Email:</strong> {profile?.email}
+              </p>
+              <p>
+                <strong>Display name:</strong> {profile?.displayName || "—"}
+              </p>
+              <p>
+                <strong>Member since:</strong> {formatMemberSince(profile?.memberSince || profile?.createdAt)}
+              </p>
+            </div>
+          ) : null}
+          {profileStatus === "error" ? (
+            <p className="banner error" role="alert">
+              {profileError}
+            </p>
+          ) : null}
+        </section>
 
         <p className="subtitle" style={{ marginTop: "1rem" }}>
           <Link to="/login">Back to login</Link>

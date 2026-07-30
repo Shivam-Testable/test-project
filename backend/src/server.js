@@ -28,5 +28,6 @@ app.listen(PORT, () => {
   console.log(`POST /api/v1/auth/login`);
   console.log(`POST /api/v1/auth/logout`);
   console.log(`GET  /api/v1/home`);
+  console.log(`GET  /api/v1/home/profile`);
   console.log(`PATCH /api/v1/users/me`);
 });

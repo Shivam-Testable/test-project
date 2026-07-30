@@ -17,4 +17,18 @@ router.get("/", requireAuth, (req, res) => {
   });
 });
 
+/**
+ * GET /api/v1/home/profile — TESR-9 (combined with Home profile card UI)
+ * Requires Authorization: Bearer <token>
+ */
+router.get("/profile", requireAuth, (req, res) => {
+  const user = toPublicUser(req.user);
+  return res.status(200).json({
+    email: user.email,
+    displayName: user.displayName,
+    createdAt: user.createdAt,
+    memberSince: user.createdAt,
+  });
+});
+
 module.exports = router;
